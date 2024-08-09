@@ -23,12 +23,6 @@ vec4 effect(vec4 color, sampler2D texture, vec2 tc, vec2 screen_coords){
     if (delta >= 0.0) {
         float t_plus = (-b + sqrt(delta))/(2*a);
         float t_minus = (-b - sqrt(delta))/(2*a);
-        if (t_plus >= 0.0) {
-            if (t_minus >= 0.0) return vec4(min(t_plus, t_minus), max(t_plus, t_minus), 0.0, 0.0);
-            else return vec4(t_plus, -1.0, 0.0, 0.0);
-        } else {
-            if (t_minus >= 0.0) return vec4(t_minus, -1.0, 0.0, 0.0);
-            else return vec4(-1.0, -1.0, 0.0, 0.0);
-        }
-    } else return vec4(-1.0, -1.0, 0.0, 0.0);
+        return vec4(min(t_plus, t_minus), max(t_plus, t_minus), 1.0, 0.0);
+    } else return vec4(0.0, 0.0, -1.0, 0.0);
 }
