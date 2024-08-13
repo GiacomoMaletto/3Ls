@@ -26,6 +26,7 @@ camera.xyz = { 2, 2, 2 }
 camera.phi = math.rad(180 + 45)
 camera.theta = math.rad(120)
 camera.speed = 1
+camera.run_speed = 10
 camera.fov = math.rad(120)
 camera.look = false
 
@@ -107,6 +108,31 @@ local graph_zoom = 1
 local graph_speed = 1
 graph_zoom_speed = 2
 
+local file_names = love.filesystem.getDirectoryItems("configurations")
+local file_vars = {}
+local selected_file = 1
+
+local function load_files()
+    file_vars = {}
+    file_names = love.filesystem.getDirectoryItems("configurations")
+    for k, file in ipairs(file_names) do
+        file_vars[k] = ffi.new("char[32]")
+        ffi.copy(file_vars[k], file)
+    end
+end
+
+load_files()
+
+local save_name_var = ffi.new("char[32]")
+ffi.copy(save_name_var, "new configuration")
+
+-- for k, file in ipairs(files) do
+--     -- files_vars[k][0] = file
+--     ffi.copy(files_vars[k], file)
+-- end
+-- local index_var = ffi.new("int")
+-- index_var[0] = 1
+
 love.update = function(Dt)
     dt = Dt
     t = t + dt
@@ -115,7 +141,7 @@ love.update = function(Dt)
     imgui.love.Update(dt)
 
     imgui.NewFrame()
-    imgui.Begin("miao")
+    imgui.Begin("Selected")
 
     local pos = imgui.GetCursorScreenPos()
     local pos1 = imgui.ImVec2_Float(pos.x + 100, pos.y + 0)
@@ -143,7 +169,7 @@ love.update = function(Dt)
 
     imgui.End()
 
-    imgui.Begin("bau")
+    imgui.Begin("Matrices")
 
     imgui.SeparatorText("A1")
 
@@ -273,6 +299,79 @@ love.update = function(Dt)
 
     imgui.End()
 
+    imgui.Begin("configs")
+
+    imgui.SeparatorText("Save")
+
+    if imgui.Button("save") then
+        local file = io.open("configurations/" .. ffi.string(save_name_var) .. ".txt", "w")
+        for i = 1, 3 do
+            for j = 1, 4 do
+                for k = 1, 4 do
+                    file:write(string.format("%.6f", A_var[i][j][k][0]) .. "\n")
+                end
+            end
+        end
+        file:close()
+        load_files()
+    end
+
+    imgui.InputText(".txt", save_name_var, 32)
+
+    imgui.SeparatorText("Load")
+
+    if imgui.Button("load") then
+        local file = io.open("configurations/" .. file_names[selected_file], "r")
+        for i = 1, 3 do
+            for j = 1, 4 do
+                for k = 1, 4 do
+                    A_var[i][j][k][0] = tonumber(file:read("*l"))
+                end
+            end
+        end
+        file:close()
+    end
+
+    imgui.SameLine()
+
+    if imgui.Button("refresh") then
+        load_files()
+    end
+
+    imgui.SameLine()
+
+    if imgui.Button("delete") then
+        os.remove("configurations/" .. file_names[selected_file])
+        load_files()
+    end
+
+    -- imgui.TreeNode("miao")
+    imgui.BeginListBox("##asdads")
+
+    for k, fv in ipairs(file_vars) do
+        if imgui.Selectable_Bool(fv, k == selected_file) then
+            selected_file = k
+        end
+    end
+
+    imgui.EndListBox()
+
+    imgui.End()
+
+    -- imgui.Begin("configs")
+
+    -- imgui.BeginListBox("asd")
+
+    -- for n = 1, #files do
+    --     local is_selected = (n == index_var[0])
+    --     if imgui.Selectable(items_var[n], is_selected) then index_var[0] = n end
+    --     if is_selected then imgui.SetItemDefaultFocus() end
+    -- end
+
+    -- imgui.EndListBox()
+
+    -- imgui.End()
+
     for i = 1, 3 do
         for j = 1, 4 do
             for k = 1, j do
@@ -288,23 +387,28 @@ love.update = function(Dt)
         love.event.quit()
     end
 
+    local s = camera.speed
+    if love.keyboard.isDown("lshift") then
+        s = camera.run_speed
+    end
+
     if love.keyboard.isDown("w") then
-        camera.xyz = V.add(camera.xyz, V.mul(dt * camera.speed, camera.dir()))
+        camera.xyz = V.add(camera.xyz, V.mul(dt * s, camera.dir()))
     end
     if love.keyboard.isDown("s") then
-        camera.xyz = V.add(camera.xyz, V.mul(-dt * camera.speed, camera.dir()))
+        camera.xyz = V.add(camera.xyz, V.mul(-dt * s, camera.dir()))
     end
     if love.keyboard.isDown("d") then
-        camera.xyz = V.add(camera.xyz, V.mul(dt * camera.speed, camera.right()))
+        camera.xyz = V.add(camera.xyz, V.mul(dt * s, camera.right()))
     end
     if love.keyboard.isDown("a") then
-        camera.xyz = V.add(camera.xyz, V.mul(-dt * camera.speed, camera.right()))
+        camera.xyz = V.add(camera.xyz, V.mul(-dt * s, camera.right()))
     end
     if love.keyboard.isDown("q") then
-        camera.xyz = V.add(camera.xyz, V.mul(dt * camera.speed, camera.up()))
+        camera.xyz = V.add(camera.xyz, V.mul(dt * s, camera.up()))
     end
     if love.keyboard.isDown("z") then
-        camera.xyz = V.add(camera.xyz, V.mul(-dt * camera.speed, camera.up()))
+        camera.xyz = V.add(camera.xyz, V.mul(-dt * s, camera.up()))
     end
 
     local h, v = 0, 0
@@ -444,7 +548,7 @@ love.draw = function()
     love.graphics.setCanvas()
     love.graphics.draw(graph_canvas, 0, 0, 0, 1, 1)
 
-    imgui.ShowDemoWindow()
+    -- imgui.ShowDemoWindow()
     imgui.Render()
     imgui.love.RenderDrawLists()
 end
