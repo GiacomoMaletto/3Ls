@@ -530,7 +530,7 @@ love.draw = function()
     for i = 1, 7 do
         b[i] = flag_vars[i][0]
     end
-    display_shader:send("flag", false, unpack(b))
+    display_shader:send("selected_flags", false, unpack(b))
     display_shader:send("A", unpack(A))
     love.graphics.draw(white_canvas)
 
@@ -540,7 +540,7 @@ love.draw = function()
     graph_shader:send("zoom", graph_zoom)
     graph_shader:send("A", unpack(A))
     graph_shader:send("wh", { graph_width, graph_height })
-    graph_shader:send("flag", false, unpack(b))
+    graph_shader:send("selected_flags", false, unpack(b))
 
     love.graphics.draw(white_canvas, 0, 0, 0, graph_width / sw, graph_height / sh)
 

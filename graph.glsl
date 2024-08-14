@@ -4,7 +4,7 @@ uniform vec2 center;
 uniform float zoom;
 uniform mat4[3] A;
 uniform vec2 wh;
-uniform bool[8] flag;
+uniform bool[8] selected_flags;
 
 vec3 gen_z(vec2 lambda) {
     return vec3(1.0 - lambda.x - lambda.y, lambda.x, lambda.y);
@@ -33,7 +33,7 @@ vec4 effect(vec4 color, sampler2D tex, vec2 tc, vec2 screen_coords){
     vec3 z_dy = gen_z(lambda_dy);
 
     for (int i = 0; i < 8; i++) {
-        if (flag[i]) {
+        if (selected_flags[i]) {
             int[3] bits;
             bits[0] = i % 2;
             bits[1] = (i/2) % 2;
