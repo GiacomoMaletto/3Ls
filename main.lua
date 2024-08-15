@@ -1,4 +1,6 @@
-package.cpath = string.format("%s;%s", package.cpath, "/Users/gmaletto/Library/Application Support/LOVE/cimgui.dylib")
+local extension = jit.os == "Windows" and "dll" or jit.os == "Linux" and "so" or jit.os == "OSX" and "dylib"
+package.cpath = string.format("%s;%s", package.cpath, love.filesystem.getWorkingDirectory() .. "/cimgui." .. extension)
+-- package.cpath = string.format("%s;%s", package.cpath, "/Users/gmaletto/Library/Application Support/LOVE/cimgui.dylib")
 local ffi = require "ffi"
 local imgui = require "cimgui"
 
