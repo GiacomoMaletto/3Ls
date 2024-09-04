@@ -1,6 +1,11 @@
-local extension = jit.os == "Windows" and "dll" or jit.os == "Linux" and "so" or jit.os == "OSX" and "dylib"
-package.cpath = string.format("%s;%s", package.cpath, love.filesystem.getWorkingDirectory() .. "/cimgui." .. extension)
+-- local extension = jit.os == "Windows" and "dll" or jit.os == "Linux" and "so" or jit.os == "OSX" and "dylib"
+-- package.cpath = string.format("%s;%s", package.cpath, love.filesystem.getWorkingDirectory() .. "/cimgui." .. extension)
 -- package.cpath = string.format("%s;%s", package.cpath, "/Users/gmaletto/Library/Application Support/LOVE/cimgui.dylib")
+
+local lib_path = love.filesystem.getSaveDirectory() .. "/libraries"
+local extension = jit.os == "Windows" and "dll" or jit.os == "Linux" and "so" or jit.os == "OSX" and "dylib"
+package.cpath = string.format("%s;%s/?.%s", package.cpath, lib_path, extension)
+
 local ffi = require "ffi"
 local imgui = require "cimgui"
 
@@ -347,7 +352,7 @@ love.update = function(Dt)
         load_files()
     end
 
-    -- imgui.TreeNode("miao")
+    -- -- imgui.TreeNode("miao")
     imgui.BeginListBox("##asdads")
 
     for k, fv in ipairs(file_vars) do
