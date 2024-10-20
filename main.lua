@@ -106,6 +106,17 @@ for i = 1, 3 do
     end
 end
 
+local P = { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } }
+
+local P_var = {}
+for j = 1, 4 do
+    P_var[j] = {}
+    for k = 1, 4 do
+        P_var[j][k] = ffi.new("float[1]")
+        P_var[j][k][0] = P[j][k]
+    end
+end
+
 local graph_width = 600
 local graph_height = 400
 local graph_canvas = love.graphics.newCanvas(graph_width, graph_height, { format = "rgba32f" })
@@ -283,6 +294,43 @@ love.update = function(Dt)
     imgui.SameLine()
     imgui.DragFloat("##A344", A_var[3][4][4], 0.01)
 
+    imgui.End()
+
+    imgui.Begin("Transformation")
+
+    imgui.PushItemWidth(50)
+    imgui.DragFloat("##P11", P_var[1][1], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P12", P_var[1][2], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P13", P_var[1][3], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P14", P_var[1][4], 0.01)
+
+    imgui.DragFloat("##P21", P_var[2][1], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P22", P_var[2][2], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P23", P_var[2][3], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P24", P_var[2][4], 0.01)
+
+    imgui.DragFloat("##P31", P_var[3][1], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P32", P_var[3][2], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P33", P_var[3][3], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P34", P_var[3][4], 0.01)
+
+    imgui.DragFloat("##P41", P_var[4][1], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P42", P_var[4][2], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P43", P_var[4][3], 0.01)
+    imgui.SameLine()
+    imgui.DragFloat("##P44", P_var[4][4], 0.01)
+
     -- imgui.InputFloat4("", B_var[1][1])
     -- imgui.InputFloat4("", B_var[1][2])
     -- imgui.InputFloat4("", B_var[1][3])
@@ -387,6 +435,12 @@ love.update = function(Dt)
             for k = j + 1, 4 do
                 A[i][j][k] = A_var[i][k][j][0]
             end
+        end
+    end
+
+    for j = 1, 4 do
+        for k = 1, 4 do
+            P[j][k] = P_var[j][k][0]
         end
     end
 
@@ -516,11 +570,16 @@ love.quit = function()
 end
 
 love.draw = function()
+    local Ap = {}
+    Ap[1] = M.mulm(M.transpose(P), M.mulm(A[1], P))
+    Ap[2] = M.mulm(M.transpose(P), M.mulm(A[2], P))
+    Ap[3] = M.mulm(M.transpose(P), M.mulm(A[3], P))
+
     -- love.graphics.setBlendMode("alpha", "premultiplied")
     love.graphics.setShader(quadric_shader)
     for i = 1, 3 do
         love.graphics.setCanvas(quadric_canvas[i])
-        quadric_shader:send("A", A[i])
+        quadric_shader:send("A", Ap[i])
         love.graphics.draw(white_canvas)
     end
 
@@ -530,6 +589,7 @@ love.draw = function()
 
     -- love.graphics.setBlendMode("alpha", "premultiplied")
     -- love.graphics.setBlendMode("alpha", "premultiplied")
+
     love.graphics.setShader(display_shader)
     love.graphics.setCanvas()
     display_shader:send("t_image", unpack(quadric_canvas))
@@ -538,14 +598,14 @@ love.draw = function()
         b[i] = flag_vars[i][0]
     end
     display_shader:send("selected_flags", false, unpack(b))
-    display_shader:send("A", unpack(A))
+    display_shader:send("A", unpack(Ap))
     love.graphics.draw(white_canvas)
 
     love.graphics.setShader(graph_shader)
     love.graphics.setCanvas(graph_canvas)
     graph_shader:send("center", graph_center)
     graph_shader:send("zoom", graph_zoom)
-    graph_shader:send("A", unpack(A))
+    graph_shader:send("A", unpack(Ap))
     graph_shader:send("wh", { graph_width, graph_height })
     graph_shader:send("selected_flags", false, unpack(b))
 
